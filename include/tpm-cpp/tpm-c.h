@@ -57,7 +57,7 @@ typedef struct tpm_object {
 } tpm_object_t;
 
 TPMCPP_API tpm_error_t tpm_context_init(tpm_object_t* context);
-TPMCPP_API tpm_error_t tpm_context_message(const tpm_object_t* context, uint8_t* msg, uint32_t msg_length, tpm_object* response);
+TPMCPP_API tpm_error_t tpm_context_message(const tpm_object_t* context, uint8_t* msg, uint32_t msg_length, tpm_object_t* response);
 TPMCPP_API void* tpm_message_get_data(const tpm_object_t* object);
 TPMCPP_API tpm_error_t tpm_context_close(const tpm_object_t* object);
 
