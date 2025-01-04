@@ -11,7 +11,8 @@ jobs:
       - uses: GuillaumeFalourd/setup-windows10-sdk-action@v2
         with:
           sdk-version: 26100
+      - uses: seanmiddleditch/gha-setup-ninja@master
       - name: Configure and build CMake project
         run: |
-          cmake -G Ninja -B cmake-build-debug -DCMAKE_SYSTEM_VERSION=10.0.26100.0
+          cmake -G Ninja -B cmake-build-debug
           cmake --build ./cmake-build-debug
