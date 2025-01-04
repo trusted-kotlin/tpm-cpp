@@ -1,4 +1,6 @@
 name: Windows x86_64
+on:
+  push:
 
 jobs:
   build:
