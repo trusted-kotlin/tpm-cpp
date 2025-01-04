@@ -1,0 +1,75 @@
+name: Build and release CMake project
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build-type: [RELEASE]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup CMake
+        uses: lukka/get-cmake@latest
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt update -y
+          sudo apt install -y build-essential
+      - name: Configure and build
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          cmake --build build --config ${{ matrix.build-type }}
+      - name: Copy artifacts
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          FILE=$([[ "${{ matrix.os }}" == "ubuntu-latest" ]] && echo "libtpm-cpp.a" || echo "Release/tpm-cpp.lib")
+          ls build/
+          cp build/$FILE artifacts/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.os }}
+          path: artifacts/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: artifacts-ubuntu-latest
+          path: artifacts/
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: artifacts-windows-latest
+          path: artifacts/
+      - name: Compress files
+        run: zip -r artifacts.zip ./artifacts
+      - name: Create release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+      - name: Upload assets for release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts.zip
+          asset_name: artifacts.zip
+          asset_content_type: application/zip
