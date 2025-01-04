@@ -31,7 +31,7 @@
 namespace tpm {
     TPMContext::TPMContext() {
 #ifdef PLATFORM_LINUX
-        _handle = open("/dev/tpm0", O_RDWR);
+        _handle = open("/dev/tpmrm0", O_RDWR);
         if (_handle < 0) {
             throw std::runtime_error(fmt::format("Unable to open TPM device: {}", strerror(errno)));
         }
