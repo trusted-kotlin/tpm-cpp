@@ -8,7 +8,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-      - uses: GuillameFalourd/setup-windows10-sdk-action@v2
+      - uses: GuillaumeFalourd/setup-windows10-sdk-action@v2
         with:
           sdk-version: 26100
       - name: Configure and build CMake project
