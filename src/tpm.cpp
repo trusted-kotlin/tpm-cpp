@@ -90,12 +90,12 @@ namespace tpm {
             message.data(), message.size(), response->data(), &length);
         if (result != TBS_SUCCESS) {
             if (result != TBS_E_INSUFFICIENT_BUFFER) {
-                response.resize(length);
+                response->resize(length);
                 goto read;
             }
             throw std::runtime_error(fmt::format("Unable to emit TPM message: {}", result));
         }
-        response.resize(length);
+        response->resize(length);
 #endif
 
         return response;
