@@ -76,8 +76,10 @@ tpm_error_t tpm_context_close(const tpm_object_t* object) {
         const auto context = static_cast<tpm::TPMContext*>(object->context.context);
         context->~TPMContext();
         delete context;
+    } else {
+        return TPM_ERROR_INVALID_OBJECT;
     }
-    return TPM_ERROR_INVALID_OBJECT;
+    return TPM_ERROR_SUCCESS;
 }
 
 #ifdef __cplusplus
