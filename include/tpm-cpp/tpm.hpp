@@ -43,13 +43,13 @@ namespace tpm {
 
     public:
         explicit TPMContext();
-        TPMContext(TPMContext &&other) noexcept = delete;
+        TPMContext(TPMContext &&other) noexcept;
         TPMContext(TPMContext &other) noexcept = delete;
         ~TPMContext() noexcept;
 
-        [[nodiscard]] auto emit_message(const std::vector<std::uint8_t>& message) const -> std::vector<std::uint8_t>;
+        [[nodiscard]] auto emit_message(const std::vector<std::uint8_t>& message) const -> std::vector<std::uint8_t>*;
 
-        auto operator=(TPMContext &&other) noexcept -> TPMContext& = delete;
+        auto operator=(TPMContext &&other) noexcept -> TPMContext&;
         auto operator=(TPMContext &other) noexcept -> TPMContext& = delete;
     };
 }

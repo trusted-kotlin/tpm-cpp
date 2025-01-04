@@ -45,6 +45,10 @@ namespace tpm {
 #endif
     }
 
+    TPMContext::TPMContext(TPMContext &&other) noexcept : _handle(other._handle) {
+        other._handle = INVALID_HANDLE_VALUE;
+    }
+
     TPMContext::~TPMContext() noexcept {
 #ifdef PLATFORM_LINUX
         if (_handle >= 0) {
@@ -59,7 +63,7 @@ namespace tpm {
 #endif
     }
 
-    auto TPMContext::emit_message(const std::vector<std::uint8_t> &message) const -> std::vector<std::uint8_t> {
+    auto TPMContext::emit_message(const std::vector<std::uint8_t> &message) const -> std::vector<std::uint8_t>* {
 #ifdef PLATFORM_LINUX
         if (const std::size_t written = write(_handle, message.data(), message.size()); written != message.size()) {
             throw std::runtime_error(fmt::format("Unable to write to TPM device: {}", strerror(errno)));
@@ -67,23 +71,23 @@ namespace tpm {
 
         // Reading the header of the TPM 2.0 message, then extracting the length out of it, and then we can expand the
         // buffer and read the remaining bytes of the message. (10 = length of response header)
-        auto response = std::vector<std::uint8_t>(10);
-        if (const auto read = ::read(_handle, response.data(), 10); read <= 0) {
+        auto response = new std::vector<std::uint8_t>(10);
+        if (const auto read = ::read(_handle, response->data(), 10); read <= 0) {
             throw std::runtime_error(fmt::format("Unable to read header of response: {}", strerror(errno)));
         }
 
-        const std::size_t resp_length = response[2] << 24 | response[3] << 16 | response[4] << 8 | response[5];
-        response.resize(resp_length);
-        if (const auto read = ::read(_handle, response.data() + 10, resp_length - 10); read <= 0) {
+        const std::size_t resp_length = (*response)[2] << 24 | (*response)[3] << 16 | (*response)[4] << 8 | (*response)[5];
+        response->resize(resp_length);
+        if (const auto read = ::read(_handle, response->data() + 10, resp_length - 10); read <= 0) {
             throw std::runtime_error(fmt::format("Unable to read remaining message: {}", strerror(errno)));
         }
 #else
         std::uint32_t length = 64;
-        auto response = std::vector<std::uint8_t>(length);
+        auto response = new std::vector<std::uint8_t>(length);
 
         read:
         const auto result = Tbsip_Submit_Command(_handle,TBS_COMMAND_LOCALITY_ZERO, TBS_COMMAND_PRIORITY_NORMAL,
-            message.data(), message.size(), response.data(), &length);
+            message.data(), message.size(), response->data(), &length);
         if (result != TBS_SUCCESS) {
             if (result != TBS_E_INSUFFICIENT_BUFFER) {
                 response.resize(length);
@@ -94,6 +98,12 @@ namespace tpm {
         response.resize(length);
 #endif
 
-        return std::move(response);
+        return response;
+    }
+
+    auto TPMContext::operator=(TPMContext &&other) noexcept -> TPMContext& {
+        _handle = other._handle;
+        other._handle = INVALID_HANDLE_VALUE;
+        return *this;
     }
 }
