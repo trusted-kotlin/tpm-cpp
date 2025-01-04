@@ -1,0 +1,15 @@
+name: Windows x86_64
+
+jobs:
+  build:
+    name: Build for Windows 10
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: GuillameFalourd/setup-windows10-sdk-action@v2
+        with:
+          sdk-version: 26100
+      - name: Configure and build CMake project
+        run: >-
+          cmake -G Ninja -B cmake-build-debug -DCMAKE_SYSTM_VERSION=10.0.26100.0
+          cmake --build .
