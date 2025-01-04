@@ -40,8 +40,8 @@ tpm_error_t tpm_context_init(tpm_object_t* context) {
     }
 }
 
-tpm_error_t tpm_context_message(const tpm_object_t* context, const uint8_t* msg, const uint32_t msg_length, const tpm_object* response) {
-    if (context->type != TPM_OBJECT_CONTEXT && context->type != TPM_OBJECT_MESSAGE) {
+tpm_error_t tpm_context_message(const tpm_object_t* context, const uint8_t* msg, const uint32_t msg_length, tpm_object_t* response) {
+    if (context->type != TPM_OBJECT_CONTEXT || response->type != TPM_OBJECT_MESSAGE) {
         return TPM_ERROR_INVALID_OBJECT;
     }
 
@@ -50,10 +50,8 @@ tpm_error_t tpm_context_message(const tpm_object_t* context, const uint8_t* msg,
 
     try {
         auto* response_vector = tpm_context->emit_message(message);
-        auto response_object = response->message;
-        response_object.length = response_vector->size();
-        response_object.message = static_cast<void*>(response_vector);
-
+        response->message.length = response_vector->size();
+        response->message.message = static_cast<void*>(response_vector);
     } catch (std::runtime_error& ignored) {
         return TPM_ERROR_OPERATION_FAILED;
     }
@@ -61,12 +59,12 @@ tpm_error_t tpm_context_message(const tpm_object_t* context, const uint8_t* msg,
     return TPM_ERROR_SUCCESS;
 }
 
-TPMCPP_API void* tpm_message_get_data(const tpm_object_t* object) {
+TPMCPP_API uint8_t* tpm_message_get_data(const tpm_object_t* object) {
     if (object->type != TPM_OBJECT_MESSAGE) {
         return nullptr;
     }
 
-    return object->message.message;
+    return static_cast<std::vector<uint8_t>*>(object->message.message)->data();
 }
 
 tpm_error_t tpm_context_close(const tpm_object_t* object) {

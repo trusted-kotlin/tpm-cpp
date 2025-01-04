@@ -39,6 +39,7 @@ endif ()
 # Library
 file(GLOB_RECURSE TPM_CPP_SOURCE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c*")
 add_library(tpm-cpp STATIC ${TPM_CPP_SOURCE_FILES})
+#add_executable(tpm-cpp ${TPM_CPP_SOURCE_FILES})
 target_include_directories(tpm-cpp PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 # Fetch fmt
