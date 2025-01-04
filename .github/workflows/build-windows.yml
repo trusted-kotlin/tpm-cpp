@@ -12,6 +12,6 @@ jobs:
         with:
           sdk-version: 26100
       - name: Configure and build CMake project
-        run: >-
-          cmake -G Ninja -B cmake-build-debug -DCMAKE_SYSTM_VERSION=10.0.26100.0
-          cmake --build .
+        run: |
+          cmake -G Ninja -B cmake-build-debug -DCMAKE_SYSTEM_VERSION=10.0.26100.0
+          cmake --build ./cmake-build-debug
