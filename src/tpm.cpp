@@ -70,15 +70,15 @@ namespace tpm {
         }
 
         // Reading the header of the TPM 2.0 message, then extracting the length out of it, and then we can expand the
-        // buffer and read the remaining bytes of the message. (10 = length of response header)
-        auto response = new std::vector<std::uint8_t>(10);
-        if (const auto read = ::read(_handle, response->data(), 10); read <= 0) {
+        // buffer and read the remaining bytes of the message. (6 = length of response header without code)
+        auto response = new std::vector<std::uint8_t>(6);
+        if (const auto read = ::read(_handle, response->data(), 6); read < 6) {
             throw std::runtime_error(fmt::format("Unable to read header of response: {}", strerror(errno)));
         }
 
-        const std::size_t resp_length = (*response)[2] << 24 | (*response)[3] << 16 | (*response)[4] << 8 | (*response)[5];
-        response->resize(resp_length);
-        if (const auto read = ::read(_handle, response->data() + 10, resp_length - 10); read <= 0) {
+        const std::size_t resp_len = (*response)[2] << 24 | (*response)[3] << 16 | (*response)[4] << 8 | (*response)[5];
+        response->resize(resp_len);
+        if (const auto read = ::read(_handle, response->data() + 6, resp_len - 6); read < resp_len - 6) {
             throw std::runtime_error(fmt::format("Unable to read remaining message: {}", strerror(errno)));
         }
 #else
@@ -89,7 +89,7 @@ namespace tpm {
         const auto result = Tbsip_Submit_Command(_handle,TBS_COMMAND_LOCALITY_ZERO, TBS_COMMAND_PRIORITY_NORMAL,
             message.data(), message.size(), response->data(), &length);
         if (result != TBS_SUCCESS) {
-            if (result != TBS_E_INSUFFICIENT_BUFFER) {
+            if (result == TBS_E_INSUFFICIENT_BUFFER) {
                 response->resize(length);
                 goto read;
             }
