@@ -3,6 +3,7 @@ project(tpm_cpp)
 include(FetchContent)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Detect platform
 if (WIN32)
