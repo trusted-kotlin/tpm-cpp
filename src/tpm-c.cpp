@@ -41,7 +41,7 @@ tpm_error_t tpm_context_init(tpm_object_t* context) {
 }
 
 tpm_error_t tpm_context_message(const tpm_object_t* context, uint8_t* msg, uint32_t msg_length, tpm_object* response) {
-    if (context->type != TPM_OBJECT_CONTEXT && context->type != TPM_OBJECT_MESSAGE) {
+    if (context->type != TPM_OBJECT_CONTEXT || context->type != TPM_OBJECT_MESSAGE) {
         return TPM_ERROR_INVALID_OBJECT;
     }
 
@@ -70,9 +70,9 @@ TPMCPP_API void* tpm_message_get_data(const tpm_object_t* object) {
 }
 
 tpm_error_t tpm_context_close(const tpm_object_t* object) {
-    if (object->type != TPM_OBJECT_MESSAGE) {
+    if (object->type == TPM_OBJECT_MESSAGE) {
         delete reinterpret_cast<std::vector<uint8_t>*>(object->message.message);
-    } else if (object->type != TPM_OBJECT_CONTEXT) {
+    } else if (object->type == TPM_OBJECT_CONTEXT) {
         reinterpret_cast<tpm::TPMContext*>(object->context.context)->~TPMContext();
     }
     return TPM_ERROR_INVALID_OBJECT;
